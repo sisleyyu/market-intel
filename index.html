@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Twin 情報週報</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+  <style>
+    :root {
+      --primary: #2E86AB;
+      --primary-dark: #1a6a8a;
+      --primary-light: #e8f4f8;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --bg: #f3f6f9;
+      --card: #ffffff;
+      --tag-bg: #eef7fb;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "PingFang HK", "Noto Sans TC", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 0 32px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 2px 10px rgba(46,134,171,0.3);
+    }
+    header .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    header .logo svg { opacity: 0.9; }
+    header .header-meta {
+      font-size: 12px;
+      opacity: 0.8;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    header .badge {
+      background: rgba(255,255,255,0.2);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+    }
+
+    /* ── Layout ── */
+    .layout {
+      display: flex;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* ── Sidebar ── */
+    aside {
+      width: 230px;
+      flex-shrink: 0;
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      padding: 28px 0;
+      position: sticky;
+      top: 56px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+    }
+    aside .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--muted);
+      padding: 0 20px 14px;
+    }
+    .report-list { list-style: none; }
+    .report-list li a {
+      display: block;
+      padding: 11px 20px;
+      text-decoration: none;
+      color: var(--text);
+      border-left: 3px solid transparent;
+      transition: all 0.12s;
+    }
+    .report-list li a:hover {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+    .report-list li a.active {
+      border-left-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+    .report-list li a .r-date {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .report-list li a .r-label {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .report-list li a.active .r-label { color: var(--primary); opacity: 0.8; }
+
+    /* ── Main ── */
+    main {
+      flex: 1;
+      padding: 40px 52px;
+      min-width: 0;
+    }
+
+    /* ── Meta bar ── */
+    .meta-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .meta-tag {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .meta-tag.latest {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+      font-weight: 600;
+    }
+
+    /* ── Report content ── */
+    .content h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+    .content > p:first-of-type {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .content h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 32px 0 14px;
+      padding: 9px 14px;
+      background: var(--primary-light);
+      border-left: 4px solid var(--primary);
+      border-radius: 0 6px 6px 0;
+    }
+    .content h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--primary-dark);
+      margin: 20px 0 8px;
+    }
+    .content p {
+      font-size: 14.5px;
+      line-height: 1.85;
+      color: #374151;
+      margin-bottom: 12px;
+    }
+    .content ul, .content ol {
+      padding-left: 22px;
+      margin-bottom: 14px;
+    }
+    .content li {
+      font-size: 14.5px;
+      line-height: 1.85;
+      color: #374151;
+      margin-bottom: 5px;
+    }
+    .content strong { color: var(--text); }
+    .content em { color: var(--muted); font-size: 13px; }
+    .content a { color: var(--primary); text-decoration: none; }
+    .content a:hover { text-decoration: underline; }
+    .content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 28px 0;
+    }
+    .content blockquote {
+      border-left: 4px solid var(--primary);
+      margin: 16px 0;
+      padding: 12px 20px;
+      background: var(--primary-light);
+      color: var(--muted);
+      font-size: 13.5px;
+      border-radius: 0 6px 6px 0;
+    }
+    .content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 13.5px;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .content th {
+      background: var(--primary);
+      color: white;
+      padding: 11px 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .content td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .content tr:last-child td { border-bottom: none; }
+    .content tr:nth-child(even) td { background: #f8fbfd; }
+    .content code {
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: "SF Mono", Consolas, monospace;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 80px 40px;
+      color: var(--muted);
+    }
+    .empty-state p { font-size: 15px; margin-top: 12px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      aside { display: none; }
+      main { padding: 24px 18px; }
+      header { padding: 0 16px; }
+      header .header-meta { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    Digital Twin &amp; Synthetic Data 情報週報
+  </div>
+  <div class="header-meta">
+    <span id="header-count"></span>
+    <span class="badge" id="header-latest"></span>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="section-label">歷史報告</div>
+    <ul class="report-list" id="report-list"></ul>
+  </aside>
+
+  <main>
+    <div class="meta-bar" id="meta-bar"></div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<script>
+// ================================================================
+//  REPORTS — 由排程 Agent 每週一自動更新
+//  格式：{ date: "YYYY-MM-DD", content: "markdown 內容" }
+//  最新一期放在陣列第一位
+// ================================================================
+const REPORTS = [
+  {
+    date: "2026-06-05",
+    content: `# Digital Twin & Synthetic Data — Supplier Watch
+
+**Run date:** 5 June 2026
+**Scope:** New and existing players focused on synthetic data, especially consumer digital twins / synthetic respondents for research and strategy.
+
+---
+
+## TL;DR
+
+The space has shifted from "interesting experiment" to a funded, consolidating category. In the last ~12 months it pulled in well over **$250M** of disclosed VC, with three headline rounds in early 2026 alone (Simile $100M, Aaru to a $1B valuation, Listen Labs $69M). The methodological fault line is now clear and worth tracking for your ESOMAR/AI-strategy work: **grounded twins** (built from real individual interview/panel data) vs **pure synthetic populations** (AI-generated from public + proprietary data). Validity evidence is improving but remains mixed — which is itself becoming a marketing battleground (Panoplai's validation white paper, Jan 2026).
+
+---
+
+## The four you flagged
+
+**Aaru** — Pure synthetic population generator. Simulates entire populations with thousands of AI agents from public + proprietary data, no direct human partnering. Founded March 2024 (Cameron Fink, Ned Koh, John Kessler). **Big news:** multi-tier Series A led by Redpoint hitting a **$1B headline valuation** ($50M+ raised). Enterprise/consulting traction with **Accenture (also an investor), EY, and IPG**. Positioned for prediction of "future events" — products, campaigns, market moves.
+
+**Panoplai** — Enterprise insights platform (founded 2021 as Glimpse). Integrates traditional + synthetic surveys, data ingestion, **digital twin creation**, synthetic enrichment, interactive analysis. Clear conceptual framing you may find useful: synthetic data = survey-like structured output; digital twin = interactive, conversational simulation of a segment built from real data. **Big news:** released an **independent validation-framework white paper (Jan 2026)** — staking out the "how do you know it's right?" high ground.
+
+**Artificial Societies (societies.io / societies.ai)** — YC W25. Builds networks of **300–5,000+ interconnected AI personas** from real social-behaviour data; models social influence explicitly. Self-serve and cheap (~$40/mo unlimited, results in ~30s). Claims **15,000+ users, 100,000+ simulations** by early 2026. Notable credibility signal: research published in the **British Journal of Psychology** on replicating opinion dynamics. This is the prosumer/accessible end of the market.
+
+**Vurvey Labs** — "AI powered by people." Generative-AI platform pairing video surveys with a proprietary **"People Model"** for AI personas grounded in actual consumers (vs internet-scraped). AI Agent framework automates research → ideation → feedback loops. **Big news:** named a **Google Top Start-up to Watch for 2026**; **Dentsu/Carat partnership (Jul 2025)** embedding agentic tools into the dentsu.Connect platform. Most agency-channel-oriented of the four.
+
+---
+
+## Newer / adjacent players worth watching
+
+**Simile** — The headline of 2026. Stanford spinout from **Joon Sung Park** (author of the 2023 "Generative Agents"/Smallville paper). Builds **high-fidelity digital twins from deep interview data** (grounded). **Raised $100M Series A (Feb 2026), led by Index Ventures**, with Bain Capital Ventures, A*, plus Fei-Fei Li and Andrej Karpathy. Claims 80–85% accuracy predicting analyst questions in simulated earnings calls; clients include CVS Health. Direct positioning: "replace focus groups."
+
+**Listen Labs** — Not pure synthetic — uses AI to **moderate real human interviews at scale** (1M+ interviews). **$69M Series B (Jan 2026)**, led by Ribbit, with Sequoia, Conviction, Pear; backed by a viral Berghain-style billboard stunt. Clients: Microsoft, Sweetgreen, Perplexity, Robinhood. The "human-in-the-loop" counterpoint to the synthetic camp.
+
+**Fairgen** (Tel Aviv) — Synthetic data to "boost" thin survey cells; **$8M seed (2024)**. Launched **Fairgen Twins** — a marketplace of digital twins of real, named panel respondents; full research deck in ~20 min.
+
+**Evidenza** — Synthetic audiences specialised for **B2B** (CEOs, CIOs, CFOs, CMOs) — hard-to-reach, expensive populations. Real-time qual + quant.
+
+**Subconscious.ai** (NYC, founded 2022) — **Causal** market research / behaviour simulation. Runs causal experiments in ~3 min vs months; cost from ~$20k–$120k down to ~$10 per experiment.
+
+**Others surfacing in supplier roundups:** Synthetic Users, Outset AI, Nexxt, Voxpopme, Expected Parrot, Meaningful, xPolls, CivicSync — plus incumbents moving in (**Ipsos**, Bain commentary, TRC). Worth a deeper scan if you want the long tail.
+
+---
+
+## Signals for your work
+
+- **Taxonomy is the live debate.** Grounded twin (real individual data, evolving) vs synthetic consumer (generalised persona) vs synthetic data (survey-like output). Vendors are choosing sides and it maps directly onto validity claims — relevant for the ESOMAR AI Strategy paper and your Digital Twin workshop framing.
+- **Validation as positioning.** Panoplai's white paper and Simile's accuracy claims show the next competitive front is *proof*, not just speed/cost. Academic validity is still "decidedly mixed" per late-2025/early-2026 literature — a useful caveat to keep in your thought-leadership voice.
+- **Money is uneven.** ~12 disclosed equity rounds / ~$315M over 12 months (to Apr 2026): a few mega-rounds, a long thin tail. Hubs: London, NYC, Singapore, Berlin, Bangalore.
+- **APAC gap = opportunity.** Most named consumer-twin players are US/EU/Israel. APAC digital-twin startups skew industrial (Intangles, Neara, FJ Dynamics). The consumer-insight twin niche is comparatively open in your region — a possible angle for Tokyo May 2026.
+
+---
+
+## Sources
+
+- [Vurvey Labs](https://vurvey.com/) · [New AI tools launch](https://vurvey.com/resources/vurvey-launches-new-ai-tools-for-consumer-insights-and-market-research-teams) · [Carat/Dentsu partnership](https://www.carat.com/en-us/thoughts-and-views/carat-expands-ai-powered-media-capabilities-forges-partnership-with-vurvey-labs-to-deepen-consumer-insight-and-cultural-relevance-for-brands)
+- [Aaru](https://aaru.com/) · [Accenture invests (Research Live)](https://www.research-live.com/article/news/accenture-invests-in-synthetic-audience-startup-aaru/id/5136643) · [$1B valuation (TechBuzz)](https://www.techbuzz.ai/articles/aaru-hits-1b-valuation-with-multi-tier-series-a-funding)
+- [Panoplai](https://www.panoplai.com/) · [Digital twins](https://www.panoplai.com/digital-twins) · [Validation white paper](https://www.newsfilecorp.com/release/279836/Panoplai-Releases-Independent-White-Paper-Introducing-a-New-Validation-Framework-for-Digital-Twins-and-Synthetic-Data)
+- [Artificial Societies](https://societies.io/) · [Research Live launch](https://www.research-live.com/article/news/ai-startup-artificial-societies-launches-research-simulation/id/5141643) · [Y Combinator](https://www.ycombinator.com/companies/artificial-societies)
+- [Simile $100M (SiliconANGLE)](https://siliconangle.com/2026/02/12/ai-digital-twin-startup-simile-raises-100m-funding/) · [Index Ventures perspective](https://www.indexventures.com/perspectives/life-the-universe-and-simile-leading-similes-series-a/)
+- [Listen Labs $69M (VentureBeat)](https://venturebeat.com/technology/listen-labs-raises-usd69m-after-viral-billboard-hiring-stunt-to-scale-ai)
+- [Fairgen](https://www.fairgen.ai/) · [Evidenza](https://www.evidenza.ai/) · [Subconscious.ai](https://subconscious.ai/)
+- Market context: [Bain — Synthetic Customers](https://www.bain.com/insights/synthetic-customers-earn-their-stripes/) · [Greenbook synthetic sample suppliers](https://www.greenbook.org/market-research-firms/synthetic-sample-providers)`
+  }
+];
+// ================================================================
+
+let currentIndex = 0;
+
+function renderReport(index) {
+  currentIndex = index;
+  const report = REPORTS[index];
+  if (!report) return;
+
+  document.getElementById("content").innerHTML = marked.parse(report.content);
+
+  const metaBar = document.getElementById("meta-bar");
+  metaBar.innerHTML = `
+    <span class="meta-tag latest">最新報告</span>
+    <span class="meta-tag">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      ${report.date}
+    </span>
+    <span class="meta-tag">共 ${REPORTS.length} 期報告</span>
+  `.replace('最新報告', index === 0 ? '最新報告' : `第 ${REPORTS.length - index} 期`);
+  if (index !== 0) {
+    metaBar.querySelector('.latest').classList.remove('latest');
+  }
+
+  document.querySelectorAll(".report-list a").forEach((a, i) => {
+    a.classList.toggle("active", i === index);
+  });
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function buildSidebar() {
+  const list = document.getElementById("report-list");
+  list.innerHTML = REPORTS.map((r, i) => `
+    <li>
+      <a href="#" onclick="renderReport(${i}); return false;" class="${i === 0 ? "active" : ""}">
+        <span class="r-date">${r.date}</span>
+        <span class="r-label">${i === 0 ? "最新" : "第 " + (REPORTS.length - i) + " 期"}</span>
+      </a>
+    </li>
+  `).join("");
+}
+
+function updateHeader() {
+  document.getElementById("header-count").textContent = `共 ${REPORTS.length} 期`;
+  document.getElementById("header-latest").textContent = `最新：${REPORTS[0].date}`;
+}
+
+buildSidebar();
+updateHeader();
+renderReport(0);
+</script>
+</body>
+</html>
